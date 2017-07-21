@@ -1,0 +1,122 @@
+---
+title: "What Motor Trend recommends you for higher MPG!"
+author: "generalinsight"
+date: "July 20, 2017"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+###Executive Summary
+
+Motor Trend, a magazine about the automobile industry. is looking at a data set of a collection of cars, they are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome). They are particularly interested in the following two questions:
+
+* Is an automatic or manual transmission better for MPG
+* Quantify the MPG difference between automatic and manual transmissions
+
+An exceptionally useful dataset **mtcars** in R is used for this purpose. Along with exploratory analysis, the researchers took a deeper dive into linear regression modeling and effect associations between various parameters of cars - incuding transmission of cars and the impact that it has upon mileage - mpg. 
+
+The recommendation is made in favor of manual transmission for higher mpg. This conclusion is based upon linear models and their analysis to show that the null hypothesis can be rejected, **accpeting altenative hypothesis that there remains significant difference in MPG between the groups with automatic (am = 0)and manual (am = 1) transmission, at alpha = 0.05.** 
+
+On average, MPG for cars with automatic transmission is 7.2 and manual transmission is 17.1.
+
+**Manual transmission gets better mpg!**
+
+
+###Data & Exploratory Analysis
+
+Loading the data, required libraries, as well, some initial exploratory analysis conducted. Much of this analysis is placed in the appendix, some highlights are below - 
+
+* Figure-1: showed that MPG ranged from around 10 to 34, with heavy frequency around 15 to 23.
+
+* Figure-2: showed that MPG varied between manual and automatic transmission. manual transmission showed mcuh higher mpg. more remarkably, 75% of automatic transmissions showed mpg below 20, around 75% of automatic transmissions showed mpg above 20.
+
+
+###Data Models
+
+Linear regression models are used in the data to identify relationship between the various variables in the data with mpg. 
+
+Starting with a simple linear model for mpg as outcome and am (transmission) as regressor provided much of the needed confirmation. it is found that the difference between the two transmission groups are significant in terms of mpg as the confidence intervals did not include 0 and p-values were small but greater than 0.  
+
+Additional models, adding wt and qsec as regressors were conducted, with similar confirming results. nothing to the contrary observed in these models, to further confirm rejecting null hypothesis and accpeting altenative hypotheris.
+
+
+###Review of Residuals
+
+Finally, the residuals were reviewed to check for patterns. The residuals are mostly random with few callouts. 
+
+###Appendix
+
+###Exploratory Data Analysis
+
+```{r, message = FALSE}
+data(mtcars)
+library(tidyverse)
+head(mtcars)
+str(mtcars)
+```
+
+###Exploratory Plots
+
+```{r}
+
+ggplot(mtcars, aes(mpg), bins = 10) +
+        geom_dotplot(binwidth = 1, fill="lightblue") +
+        labs(x = "mpg", y = "count", title = "Distribution of MPG")
+
+ggplot(mtcars, aes(factor(am), mpg)) +
+        geom_boxplot(aes(factor(am), mpg), fill = "lightblue") +
+        labs(x = "Transmission, 0 = automatic, 1 = manual", y = "mpg", title = "MPG by Transmission")
+```
+
+
+###Linear Regression Models
+
+#####First, the simple linear model is analysed.
+
+```{r}
+data(mtcars)
+n <- length(mtcars$mpg)
+alpha <- 0.05
+mdl1 <- lm(mpg ~ am, mtcars)
+summary(mdl1)$coef
+confint(mdl1)
+```
+
+Therefore, p-value being small (2.850207e-04) and confidence interval not including zero, therefore, null hypothesis can be rejected. and alternate hypothesis can be accepted that there is significant difference, at alpha = 0.05,  in MPG between different transmission (0 = automatic, 1 = manual). 
+
+#####Then, multiple regression model is analysed.
+
+```{r}
+
+mdl2 <- lm(mpg ~ wt + qsec + am, mtcars)
+summary(mdl2)$coef
+confint(mdl2)
+```
+
+Again, the p-value (for am) is small and the confidence interval (for am) does not incude 0. Further proof that null hypothesis can be rejected, accpeting altenative hypothesis that there remains significant difference in MPG between the groups with automatic (am = 0)and manual (am = 1) transmission, at alpha = 0.05
+
+
+#####Then, nested models are compared and analysed.
+
+
+```{r}
+
+nes1 <- lm(mpg ~ wt, mtcars)
+nes2 <- lm(mpg ~ wt + qsec, mtcars)
+nes3 <- lm(mpg ~ wt + qsec + am, mtcars) 
+
+anova(nes1, nes2, nes3)
+```
+
+The anova shows that all three regressors - wt, qsec and am - are significant.
+
+#####Finally, residual plot of regression model
+
+```{r}
+plot(mdl2, which = 1)
+```
